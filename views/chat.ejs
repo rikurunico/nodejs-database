@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <title>RealTime Chat</title>
+  </head>
+  <body>
+    <div>
+      <!--- Login -->
+      <div class="container mt-4" style="height: auto" id="loginContainer">
+        <h3><%= title %></h3>
+        <form id="loginForm">
+          <input
+            type="submit"
+            class="btn btn-danger w-100"
+            value="Masuk Sekarang"
+            id="loginButton"
+          />
+        </form>
+      </div>
+
+      <!--- Chatting -->
+      <div class="container mt-4" style="height: auto" id="chatContainer">
+        <h3><%= roomChat %></h3>
+        <form id="chatForm">
+          <div id="messageList" style="height: 400px" class="border p-4"></div>
+          <input type="text" class="w-100 form-control mt-2" id="message" />
+          <input
+            type="submit"
+            class="btn btn-danger w-100 mt-2"
+            value="Kirim Pesan"
+            id="sendMessage"
+          />
+        </form>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      const loginContainer = document.getElementById("loginContainer");
+      const chatContainer = document.getElementById("chatContainer");
+      const message = document.getElementById("message");
+      const sendMessage = document.getElementById("sendMessage");
+      const messageList = document.getElementById("messageList");
+
+      chatContainer.style.display = "none";
+
+      loginButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        chatContainer.style.display = "block";
+        loginContainer.style.display = "none";
+      });
+
+      sendMessage.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (message.value) {
+          const data = {
+            id: socket.id,
+            message: message.value,
+          };
+
+          socket.emit("message", data);
+          let chatList = document.createElement("p");
+          chatList.style.fontsize = "24px";
+          chatList.textContent = message.value;
+          messageList.appendChild(chatList);
+          message.value = "";
+        }
+      });
+
+      socket.on("message", (id, message) => {
+        let broadcast = document.createElement("p");
+        broadcast.style.fontsize = "24px";
+        broadcast.style.textAlign = "right";
+        broadcast.textContent = `${message} *(${id})`;
+        messageList.appendChild(broadcast);
+      });
+    </script>
+  </body>
+</html>

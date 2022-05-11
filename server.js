@@ -1,8 +1,12 @@
 const express = require("express");
 const mysql = require("mysql");
 const BodyParser = require("body-parser");
-
 const app = express();
+
+const http = require("http");
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 
 app.use(BodyParser.urlencoded({ extended: true }));
 
@@ -30,6 +34,11 @@ db.connect((err) => {
     });
   });
 
+  // Redirect To chat
+  app.get("/chat", (req, res) => {
+    res.render("chat", { title: "Masuk Forum" , roomChat: "Room Chat"});
+  });
+
   // Insert Data
   app.post("/tambah", (req, res) => {
     const insertsql = `INSERT INTO user (nama, kelas) VALUES ('${req.body.nama}', '${req.body.kelas}')`;
@@ -40,6 +49,13 @@ db.connect((err) => {
   });
 });
 
-app.listen(8000, () => {
+io.on("connection", (socket) => {
+  socket.on("message", (data) => {
+    const { id, message } = data;
+    socket.broadcast.emit("message", id, message);
+  });
+});
+
+server.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
